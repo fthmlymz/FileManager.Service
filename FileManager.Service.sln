@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4045571E-B307-441B-AC66-6ACEE85282D8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FileTransferManager.Service", "FileTransferManager.Service", "{CDE098D0-33FD-4A6B-930E-5DD37A721973}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileTransferManager.Service", "src\FileTransferManager.Service\FileTransferManager.Service.csproj", "{E783FE79-AA49-48BD-A2CD-8FD71E759487}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{BF54BDCF-CE57-42D9-A1E5-C997DDB1D869}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E783FE79-AA49-48BD-A2CD-8FD71E759487}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E783FE79-AA49-48BD-A2CD-8FD71E759487}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E783FE79-AA49-48BD-A2CD-8FD71E759487}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E783FE79-AA49-48BD-A2CD-8FD71E759487}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF54BDCF-CE57-42D9-A1E5-C997DDB1D869}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF54BDCF-CE57-42D9-A1E5-C997DDB1D869}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF54BDCF-CE57-42D9-A1E5-C997DDB1D869}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF54BDCF-CE57-42D9-A1E5-C997DDB1D869}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CDE098D0-33FD-4A6B-930E-5DD37A721973} = {4045571E-B307-441B-AC66-6ACEE85282D8}
+		{E783FE79-AA49-48BD-A2CD-8FD71E759487} = {CDE098D0-33FD-4A6B-930E-5DD37A721973}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FC472FB2-6E82-4AF1-A4A4-E8BABEBF1434}
+	EndGlobalSection
+EndGlobal
