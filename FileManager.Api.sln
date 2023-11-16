@@ -5,11 +5,11 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4045571E-B307-441B-AC66-6ACEE85282D8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FileTransferManager.Service", "FileTransferManager.Service", "{CDE098D0-33FD-4A6B-930E-5DD37A721973}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FileTransferManager.Api", "FileTransferManager.Api", "{CDE098D0-33FD-4A6B-930E-5DD37A721973}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileTransferManager.Service", "src\FileTransferManager.Service\FileTransferManager.Service.csproj", "{E783FE79-AA49-48BD-A2CD-8FD71E759487}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileTransferManager.Api", "src\FileTransferManager.Api\FileTransferManager.Api.csproj", "{E783FE79-AA49-48BD-A2CD-8FD71E759487}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{BF54BDCF-CE57-42D9-A1E5-C997DDB1D869}"
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{B645CA83-7D5C-4372-9752-B095DC6BEBD9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,10 +21,10 @@ Global
 		{E783FE79-AA49-48BD-A2CD-8FD71E759487}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E783FE79-AA49-48BD-A2CD-8FD71E759487}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E783FE79-AA49-48BD-A2CD-8FD71E759487}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BF54BDCF-CE57-42D9-A1E5-C997DDB1D869}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BF54BDCF-CE57-42D9-A1E5-C997DDB1D869}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BF54BDCF-CE57-42D9-A1E5-C997DDB1D869}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BF54BDCF-CE57-42D9-A1E5-C997DDB1D869}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B645CA83-7D5C-4372-9752-B095DC6BEBD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B645CA83-7D5C-4372-9752-B095DC6BEBD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B645CA83-7D5C-4372-9752-B095DC6BEBD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B645CA83-7D5C-4372-9752-B095DC6BEBD9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

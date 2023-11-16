@@ -1,4 +1,4 @@
-﻿namespace FileTransferManager.Service.Configurations
+﻿namespace FileTransferManager.Api.Configurations
 {
     public class FileSettings
     {

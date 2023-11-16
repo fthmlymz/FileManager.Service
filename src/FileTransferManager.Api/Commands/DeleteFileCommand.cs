@@ -1,8 +1,6 @@
-﻿using FileTransferManager.Service.Configurations;
-using MediatR;
-using Microsoft.Extensions.Options;
+﻿using MediatR;
 
-namespace FileTransferManager.Service.Commands
+namespace FileTransferManager.Api.Commands
 {
     public class DeleteFileCommand : IRequest<bool>
     {

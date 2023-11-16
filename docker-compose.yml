@@ -2,14 +2,14 @@ version: '3.9'
 
 services:
   filetransfermanager.service:
-    image: ${DOCKER_REGISTRY-}filetransfermanagerservice
-    container_name: "filetransfermanager.service"
+    image: ${DOCKER_REGISTRY-}filetransfermanagerapi
+    container_name: "filetransfermanager.api"
     restart: "always"
     build:
       context: .
-      dockerfile: src/FileTransferManager.Service/Dockerfile
+      dockerfile: src/FileTransferManager.Api/Dockerfile
     ports:
       - "4005:80"
     volumes:
-      - ./localfiles:/app/files
+      - c:\wwwroot:/app/wwwroot
     network_mode: bridge
