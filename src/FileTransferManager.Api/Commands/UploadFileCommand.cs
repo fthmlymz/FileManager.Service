@@ -1,26 +1,25 @@
-﻿using MediatR;
+﻿using FileTransferManager.Api.Paginated;
+using MediatR;
 
 namespace FileTransferManager.Api.Commands
 {
-    public class UploadFileCommand : IRequest<bool>
+    public sealed record UploadFileCommand(IFormFile File, string FolderType) : IRequest<Result<bool>>;
+
+    public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Result<bool>>
     {
-        public IFormFile File { get; set; }
-        public string FolderType { get; set; }
-    }
-    public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, bool>
-    {
-        private readonly IWebHostEnvironment _environment;
+        private readonly IWebHostEnvironment ? _environment;
 
         public UploadFileCommandHandler(IWebHostEnvironment environment)
         {
             _environment = environment;
         }
 
-        public async Task<bool> Handle(UploadFileCommand request, CancellationToken cancellationToken)
+        public async Task<Result<bool>> Handle(UploadFileCommand request, CancellationToken cancellationToken)
+
         {
             if (request.File == null || request.File.Length == 0)
             {
-                return false;
+                return Result<bool>.Success(false);
             }
 
             var safeFolderName = GetSafeFolderName(request.FolderType);
@@ -44,7 +43,7 @@ namespace FileTransferManager.Api.Commands
                 await request.File.CopyToAsync(fileStream);
             }
 
-            return true;
+            return Result<bool>.Success(true);
         }
 
         private string GetSafeFolderName(string folderType)

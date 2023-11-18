@@ -9,7 +9,16 @@ services:
       context: .
       dockerfile: src/FileTransferManager.Api/Dockerfile
     ports:
-      - "4005:80"
+      - "4005:8080"
+#      - "4005:8081"
+    environment:
+      - Logging__LogLevel__Default=Information
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+
+      - Keycloak__Authority=http://host.docker.internal,1433/realms/inventory_management_realm
+      - Keycloak__ClientCredentialsTokenRequest__Address=http://host.docker.internal,1433/realms/inventory_management_realm/protocol/openid-connect/token
+      - Keycloak__ClientCredentialsTokenRequest__ClientId=InventoryManagementClient
+      - Keycloak__ClientCredentialsTokenRequest__ClientSecret=r0HQXrKyTpKiz04gtgNToL2zvz0aJZv9
     volumes:
       - c:\wwwroot:/app/wwwroot
     network_mode: bridge

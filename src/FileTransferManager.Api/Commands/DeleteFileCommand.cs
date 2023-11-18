@@ -1,8 +1,10 @@
-﻿using MediatR;
+﻿using FileTransferManager.Api.Paginated;
+using MediatR;
 
 namespace FileTransferManager.Api.Commands
 {
-    public class DeleteFileCommand : IRequest<bool>
+    public sealed class DeleteFileCommand : IRequest<Result<bool>>
+
     {
         public string FileName { get; set; }
         public string FolderType { get; set; }
@@ -13,37 +15,39 @@ namespace FileTransferManager.Api.Commands
             FolderType = folderType;
         }
     }
-
-
-    public class DeleteFileCommandHandler : IRequestHandler<DeleteFileCommand, bool>
+    public sealed class DeleteFileCommandHandler : IRequestHandler<DeleteFileCommand, Result<bool>>
     {
-        private readonly IWebHostEnvironment _environment;
+        private readonly IWebHostEnvironment ? _environment;
 
         public DeleteFileCommandHandler(IWebHostEnvironment environment)
         {
             _environment = environment;
         }
-
-        public async Task<bool> Handle(DeleteFileCommand request, CancellationToken cancellationToken)
+        public async Task<Result<bool>> Handle(DeleteFileCommand request, CancellationToken cancellationToken)
         {
             var safeFolderName = GetSafeFolderName(request.FolderType);
             if (string.IsNullOrEmpty(safeFolderName))
             {
-                throw new ArgumentException("Geçersiz klasör tipi");
+                return Result<bool>.Failure("Geçersiz klasör tipi");
             }
 
             string folderPath = Path.Combine(_environment.WebRootPath, safeFolderName);
-            string filePath = Path.Combine(folderPath, request.FileName);
 
-            if (File.Exists(filePath))
+            var matchingFiles = Directory.EnumerateFiles(folderPath, request.FileName + ".*");
+
+            if (!matchingFiles.Any())
             {
-                File.Delete(filePath);
-                return true;
+                return Result<bool>.Failure("Dosya bulunamadı.");
             }
 
-            return false;
+            foreach (var file in matchingFiles)
+            {
+                File.Delete(file);
+            }
+
+            return Result<bool>.Success(true);
         }
-        private string GetSafeFolderName(string folderType)
+        private string ? GetSafeFolderName(string folderType)
         {
             if (!string.IsNullOrEmpty(folderType) &&
                 folderType.All(char.IsLetterOrDigit))
@@ -52,6 +56,5 @@ namespace FileTransferManager.Api.Commands
             }
             return null;
         }
-
     }
 }

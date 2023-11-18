@@ -1,9 +1,14 @@
 using FileTransferManager.Api.Configurations;
-using System.Net;
+using FileTransferManager.Api.Keycloak;
+using IdentityModel.Client;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -42,16 +47,69 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 //#endregion
 
 
-var app = builder.Build();
+#region Keycloak JWT
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+           .AddJwtBearer(options =>
+           {
+               options.Authority = builder.Configuration.GetSection("Keycloak:Authority").Value;
+               options.Audience = builder.Configuration.GetSection("Keycloak:Audience").Value;
+               options.RequireHttpsMetadata = false;
+               options.UseSecurityTokenValidators = true;
+               options.TokenValidationParameters = new TokenValidationParameters
+               {
+                   ValidateIssuer = false,
+                   ValidateAudience = false,
+                   ValidateIssuerSigningKey = true,
+                   RequireSignedTokens = false,
+                   SignatureValidator = delegate (string token, TokenValidationParameters parameters)
+                   {
+                       var jwt = new JwtSecurityToken(token);
 
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+                       return jwt;
+                   },
+                   ValidateLifetime = false,
+                   RequireExpirationTime = false,
+                   ClockSkew = TimeSpan.Zero,
+               };
+               options.Events = new JwtBearerEvents
+               {
+                   OnTokenValidated = context =>
+                   {
+                       return Task.CompletedTask;
+                   },
+               };
+           });
+builder.Services.AddTransient<IClaimsTransformation>(_ => new KeycloakRolesClaimsTransformation("role", builder.Configuration.GetSection("Keycloak:Audience").Value));
+builder.Services.AddAuthorization(options =>
+{
+    #region File Transfer Permissions
+    options.AddPolicy("FileTransferReadRole", builder => { builder.AddRequirements(new RptRequirement("res:filetransfer", "scopes:read")); });
+    options.AddPolicy("FileTransferCreateRole", builder => { builder.AddRequirements(new RptRequirement("res:filetransfer", "scopes:create")); });
+    options.AddPolicy("FileTransferDeleteRole", builder => { builder.AddRequirements(new RptRequirement("res:filetransfer", "scopes:delete")); });
+    #endregion
+});
+builder.Services.AddHttpClient<KeycloakService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration.GetSection("Keycloak:KeycloakResourceUrl").Value);
+});
+builder.Services.AddHttpClient<IdentityModel.Client.TokenClient>();
+builder.Services.AddSingleton(builder.Configuration.GetSection("Keycloak:ClientCredentialsTokenRequest").Get<ClientCredentialsTokenRequest>());
+builder.Services.AddScoped<IAuthorizationHandler, RptRequirementHandler>();
+#endregion
+
+
+
+
+var app = builder.Build();
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();
+//app.UseStaticFiles();
 //app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
