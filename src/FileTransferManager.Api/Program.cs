@@ -21,44 +21,45 @@ builder.Services.Configure<FileSettings>(builder.Configuration.GetSection("FileS
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 
+#region Kestrel Docker
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    var httpPort = builder.Configuration["ASPNETCORE_HTTP_PORTS"];
+    var httpsPort = builder.Configuration["ASPNETCORE_HTTPS_PORTS"];
 
-//#region Kestrel docker-compose.yml
-//builder.WebHost.ConfigureKestrel(serverOptions =>
-//{
-//    var urls = builder.Configuration["ASPNETCORE_URLS"];
-//    if (builder.Environment.IsDevelopment())
-//    {
-//        var uri = new Uri(urls);
-//        var port = uri.Port;
-//        serverOptions.Listen(IPAddress.Any, port);
-//    }
-//    else
-//    {
-//        serverOptions.Listen(IPAddress.Any, 80);
-//        // Development 4002
-//        //serverOptions.Listen(IPAddress.Any, 443, listenOptions =>
-//        //{
-//        //    listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-//        //    listenOptions.UseHttps(builder.Configuration.GetSection("ASPNETCORE_Kestrel:Certificates:Default:Path").Value,
-//        //        builder.Configuration.GetSection("ASPNETCORE_Kestrel:Certificates:Default:Password").Value);
-//        //});
-//    }
-//});
-//#endregion
+    if (builder.Environment.IsDevelopment() || builder.Environment.IsProduction())
+    {
+        if (!string.IsNullOrEmpty(httpPort))
+        {
+            serverOptions.ListenAnyIP(Convert.ToInt32(httpPort));
+        }
+
+        if (!string.IsNullOrEmpty(httpsPort))
+        {
+            serverOptions.ListenAnyIP(Convert.ToInt32(httpsPort), listenOptions =>
+            {
+                listenOptions.UseHttps(builder.Configuration.GetSection("ASPNETCORE_Kestrel:Certificates:Default:Path").Value,
+                    builder.Configuration.GetSection("ASPNETCORE_Kestrel:Certificates:Default:Password").Value);
+            });
+        }
+    }
+});
+#endregion
 
 
 #region Keycloak JWT
+var keycloakSettings = builder.Configuration.GetSection("Keycloak").Get<KeycloakSettings>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
            .AddJwtBearer(options =>
            {
-               options.Authority = builder.Configuration.GetSection("Keycloak:Authority").Value;
-               options.Audience = builder.Configuration.GetSection("Keycloak:Audience").Value;
+               options.Authority = keycloakSettings.Authority;
+               options.Audience = keycloakSettings.Audience;
                options.RequireHttpsMetadata = false;
                options.UseSecurityTokenValidators = true;
                options.TokenValidationParameters = new TokenValidationParameters
                {
-                   ValidateIssuer = false,
-                   ValidateAudience = false,
+                   ValidateIssuer = true,
+                   ValidateAudience = true,
                    ValidateIssuerSigningKey = true,
                    RequireSignedTokens = false,
                    SignatureValidator = delegate (string token, TokenValidationParameters parameters)
@@ -67,8 +68,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                        return jwt;
                    },
-                   ValidateLifetime = false,
-                   RequireExpirationTime = false,
+                   ValidateLifetime = true,
+                   RequireExpirationTime = true,
                    ClockSkew = TimeSpan.Zero,
                };
                options.Events = new JwtBearerEvents
@@ -79,7 +80,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                    },
                };
            });
-builder.Services.AddTransient<IClaimsTransformation>(_ => new KeycloakRolesClaimsTransformation("role", builder.Configuration.GetSection("Keycloak:Audience").Value));
+builder.Services.AddTransient<IClaimsTransformation>(_ => new KeycloakRolesClaimsTransformation("role", keycloakSettings.Audience));
 builder.Services.AddAuthorization(options =>
 {
     #region File Transfer Permissions
@@ -90,10 +91,13 @@ builder.Services.AddAuthorization(options =>
 });
 builder.Services.AddHttpClient<KeycloakService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration.GetSection("Keycloak:KeycloakResourceUrl").Value);
+    client.BaseAddress = new Uri(keycloakSettings.KeycloakResourceUrl);
 });
 builder.Services.AddHttpClient<IdentityModel.Client.TokenClient>();
-builder.Services.AddSingleton(builder.Configuration.GetSection("Keycloak:ClientCredentialsTokenRequest").Get<ClientCredentialsTokenRequest>());
+builder.Services.AddSingleton(new ClientCredentialsTokenRequest
+{
+    Address = keycloakSettings?.ClientCredentialsTokenAddress
+});
 builder.Services.AddScoped<IAuthorizationHandler, RptRequirementHandler>();
 #endregion
 
@@ -101,13 +105,13 @@ builder.Services.AddScoped<IAuthorizationHandler, RptRequirementHandler>();
 
 
 var app = builder.Build();
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-//app.UseStaticFiles();
+app.UseStaticFiles();
 //app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

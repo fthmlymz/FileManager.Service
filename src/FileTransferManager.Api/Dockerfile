@@ -20,4 +20,16 @@ RUN dotnet publish "./FileTransferManager.Api.csproj" -c $BUILD_CONFIGURATION -o
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+
+# SSL sertifikalarini kopyala
+# host.docker.internal - ssl start
+COPY ["/src/FileTransferManager.Api/ssl/aspnetapp.pfx", "/app/ssl/aspnetapp.pfx"]
+COPY ["/src/FileTransferManager.Api/ssl/docker-host.crt", "/etc/x509/https/docker-host.crt"]
+COPY ["/src/FileTransferManager.Api/ssl/docker-host.key", "/etc/x509/https/docker-host.key"]
+# host.docker.internal - ssl end
+
+
+
+
 ENTRYPOINT ["dotnet", "FileTransferManager.Api.dll"]
