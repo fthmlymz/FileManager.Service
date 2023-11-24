@@ -17,6 +17,74 @@ namespace FileTransferManager.Api.Commands
     }
     public sealed class DeleteFileCommandHandler : IRequestHandler<DeleteFileCommand, Result<bool>>
     {
+        private readonly IWebHostEnvironment _environment;
+
+        public DeleteFileCommandHandler(IWebHostEnvironment environment)
+        {
+            _environment = environment;
+        }
+
+        public async Task<Result<bool>> Handle(DeleteFileCommand request, CancellationToken cancellationToken)
+        {
+            var safeFolderName = GetSafeFolderName(request.FolderType);
+            if (string.IsNullOrEmpty(safeFolderName))
+            {
+                return Result<bool>.Failure("Geçersiz klasör tipi");
+            }
+
+            string folderPath = Path.Combine(_environment.WebRootPath, safeFolderName);
+            string historyFolderPath = Path.Combine(_environment.WebRootPath, "HistoryFiles");
+
+            // HistoryFiles klasörünü oluşturun, eğer mevcut değilse
+            Directory.CreateDirectory(historyFolderPath);
+
+            var matchingFiles = Directory.EnumerateFiles(folderPath, request.FileName + ".*");
+
+            if (!matchingFiles.Any())
+            {
+                return Result<bool>.Failure("Dosya bulunamadı.");
+            }
+
+            try
+            {
+                foreach (var file in matchingFiles)
+                {
+                    string fileName = Path.GetFileName(file);
+                    string destFile = Path.Combine(historyFolderPath, fileName);
+
+                    // Dosya zaten varsa, üzerine yazma veya yeniden adlandırma
+                    if (File.Exists(destFile))
+                    {
+                        string newFileName = $"{Path.GetFileNameWithoutExtension(fileName)}-{DateTime.Now:yyyyMMddHHmmss}{Path.GetExtension(fileName)}";
+                        destFile = Path.Combine(historyFolderPath, newFileName);
+                    }
+
+                    // Dosyayı HistoryFiles klasörüne taşı
+                    File.Move(file, destFile);
+                }
+
+                return Result<bool>.Success(true, "Dosya başarıyla silindi");
+            }
+            catch (Exception ex)
+            {
+                return Result<bool>.Failure("Dosya silme işlemi sırasında bir hata oluştu: " + ex.Message);
+            }
+        }
+
+
+
+        private string GetSafeFolderName(string folderType)
+        {
+            if (!string.IsNullOrEmpty(folderType) && folderType.All(char.IsLetterOrDigit))
+            {
+                return folderType;
+            }
+            return null;
+        }
+    }
+
+    /*public sealed class DeleteFileCommandHandler : IRequestHandler<DeleteFileCommand, Result<bool>>
+    {
         private readonly IWebHostEnvironment ? _environment;
 
         public DeleteFileCommandHandler(IWebHostEnvironment environment)
@@ -56,5 +124,5 @@ namespace FileTransferManager.Api.Commands
             }
             return null;
         }
-    }
+    }*/
 }

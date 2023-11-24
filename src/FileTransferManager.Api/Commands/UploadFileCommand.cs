@@ -4,10 +4,9 @@ using MediatR;
 namespace FileTransferManager.Api.Commands
 {
     public sealed record UploadFileCommand(IFormFile File, string FolderType) : IRequest<Result<bool>>;
-
     public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Result<bool>>
     {
-        private readonly IWebHostEnvironment ? _environment;
+        private readonly IWebHostEnvironment? _environment;
 
         public UploadFileCommandHandler(IWebHostEnvironment environment)
         {
@@ -15,17 +14,16 @@ namespace FileTransferManager.Api.Commands
         }
 
         public async Task<Result<bool>> Handle(UploadFileCommand request, CancellationToken cancellationToken)
-
         {
             if (request.File == null || request.File.Length == 0)
             {
-                return Result<bool>.Success(false);
+                return Result<bool>.Failure("Dosya boş veya bulunamadı.");
             }
 
             var safeFolderName = GetSafeFolderName(request.FolderType);
             if (string.IsNullOrEmpty(safeFolderName))
             {
-                throw new ArgumentException("Geçersiz klasör tipi");
+                return Result<bool>.Failure("Geçersiz klasör tipi.");
             }
 
             string uploadPath = Path.Combine(_environment.WebRootPath, safeFolderName);
@@ -35,15 +33,22 @@ namespace FileTransferManager.Api.Commands
                 Directory.CreateDirectory(uploadPath);
             }
 
-            string formattedFileName = $"{Path.GetFileNameWithoutExtension(request.File.FileName)} - {DateTime.Now:dd.MM.yyyy}{Path.GetExtension(request.File.FileName)}";
-            string filePath = Path.Combine(uploadPath, formattedFileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await request.File.CopyToAsync(fileStream);
-            }
+                string formattedFileName = $"{Path.GetFileNameWithoutExtension(request.File.FileName)} - {DateTime.Now:dd.MM.yyyy}{Path.GetExtension(request.File.FileName)}";
+                string filePath = Path.Combine(uploadPath, formattedFileName);
 
-            return Result<bool>.Success(true);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await request.File.CopyToAsync(fileStream);
+                }
+
+                return Result<bool>.Success(true, "Dosya başarıyla yüklendi.");
+            }
+            catch (Exception ex)
+            {
+                return Result<bool>.Failure($"Dosya yüklenemedi: {ex.Message}");
+            }
         }
 
         private string GetSafeFolderName(string folderType)
@@ -56,4 +61,57 @@ namespace FileTransferManager.Api.Commands
             return null;
         }
     }
+
 }
+
+/*public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Result<bool>>
+{
+    private readonly IWebHostEnvironment ? _environment;
+
+    public UploadFileCommandHandler(IWebHostEnvironment environment)
+    {
+        _environment = environment;
+    }
+
+    public async Task<Result<bool>> Handle(UploadFileCommand request, CancellationToken cancellationToken)
+
+    {
+        if (request.File == null || request.File.Length == 0)
+        {
+            return Result<bool>.Success(false);
+        }
+
+        var safeFolderName = GetSafeFolderName(request.FolderType);
+        if (string.IsNullOrEmpty(safeFolderName))
+        {
+            throw new ArgumentException("Geçersiz klasör tipi");
+        }
+
+        string uploadPath = Path.Combine(_environment.WebRootPath, safeFolderName);
+
+        if (!Directory.Exists(uploadPath))
+        {
+            Directory.CreateDirectory(uploadPath);
+        }
+
+        string formattedFileName = $"{Path.GetFileNameWithoutExtension(request.File.FileName)} - {DateTime.Now:dd.MM.yyyy}{Path.GetExtension(request.File.FileName)}";
+        string filePath = Path.Combine(uploadPath, formattedFileName);
+
+        using (var fileStream = new FileStream(filePath, FileMode.Create))
+        {
+            await request.File.CopyToAsync(fileStream);
+        }
+
+        return Result<bool>.Success(true);
+    }
+
+    private string GetSafeFolderName(string folderType)
+    {
+        if (!string.IsNullOrEmpty(folderType) &&
+            folderType.All(char.IsLetterOrDigit))
+        {
+            return folderType;
+        }
+        return null;
+    }
+}*/

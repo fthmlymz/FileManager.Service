@@ -32,6 +32,9 @@ namespace FileTransferManager.Api.Controllers
             return await _mediator.Send(command);
         }
 
+
+
+
         [Authorize("FileTransferReadRole")]
         [HttpGet("download/{folderType}/{fileName}")]
         public async Task<IActionResult> DownloadFile(string folderType, string fileName)
