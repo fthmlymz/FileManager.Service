@@ -35,7 +35,6 @@ namespace FileTransferManager.Api.Commands
             string folderPath = Path.Combine(_environment.WebRootPath, safeFolderName);
             string historyFolderPath = Path.Combine(_environment.WebRootPath, "HistoryFiles");
 
-            // HistoryFiles klasörünü oluşturun, eğer mevcut değilse
             Directory.CreateDirectory(historyFolderPath);
 
             var matchingFiles = Directory.EnumerateFiles(folderPath, request.FileName + ".*");
@@ -52,14 +51,11 @@ namespace FileTransferManager.Api.Commands
                     string fileName = Path.GetFileName(file);
                     string destFile = Path.Combine(historyFolderPath, fileName);
 
-                    // Dosya zaten varsa, üzerine yazma veya yeniden adlandırma
                     if (File.Exists(destFile))
                     {
-                        string newFileName = $"{Path.GetFileNameWithoutExtension(fileName)}-{DateTime.Now:yyyyMMddHHmmss}{Path.GetExtension(fileName)}";
+                        string newFileName = $"{Path.GetFileNameWithoutExtension(fileName)}-DeletedDate-{DateTime.Now:dd-MM-yyyy-HH-mm-ss}{Path.GetExtension(fileName)}";
                         destFile = Path.Combine(historyFolderPath, newFileName);
                     }
-
-                    // Dosyayı HistoryFiles klasörüne taşı
                     File.Move(file, destFile);
                 }
 
@@ -82,47 +78,46 @@ namespace FileTransferManager.Api.Commands
             return null;
         }
     }
-
-    /*public sealed class DeleteFileCommandHandler : IRequestHandler<DeleteFileCommand, Result<bool>>
-    {
-        private readonly IWebHostEnvironment ? _environment;
-
-        public DeleteFileCommandHandler(IWebHostEnvironment environment)
-        {
-            _environment = environment;
-        }
-        public async Task<Result<bool>> Handle(DeleteFileCommand request, CancellationToken cancellationToken)
-        {
-            var safeFolderName = GetSafeFolderName(request.FolderType);
-            if (string.IsNullOrEmpty(safeFolderName))
-            {
-                return Result<bool>.Failure("Geçersiz klasör tipi");
-            }
-
-            string folderPath = Path.Combine(_environment.WebRootPath, safeFolderName);
-
-            var matchingFiles = Directory.EnumerateFiles(folderPath, request.FileName + ".*");
-
-            if (!matchingFiles.Any())
-            {
-                return Result<bool>.Failure("Dosya bulunamadı.");
-            }
-
-            foreach (var file in matchingFiles)
-            {
-                File.Delete(file);
-            }
-
-            return Result<bool>.Success(true);
-        }
-        private string ? GetSafeFolderName(string folderType)
-        {
-            if (!string.IsNullOrEmpty(folderType) &&
-                folderType.All(char.IsLetterOrDigit))
-            {
-                return folderType;
-            }
-            return null;
-        }
-    }*/
 }
+/*public sealed class DeleteFileCommandHandler : IRequestHandler<DeleteFileCommand, Result<bool>>
+   {
+       private readonly IWebHostEnvironment ? _environment;
+
+       public DeleteFileCommandHandler(IWebHostEnvironment environment)
+       {
+           _environment = environment;
+       }
+       public async Task<Result<bool>> Handle(DeleteFileCommand request, CancellationToken cancellationToken)
+       {
+           var safeFolderName = GetSafeFolderName(request.FolderType);
+           if (string.IsNullOrEmpty(safeFolderName))
+           {
+               return Result<bool>.Failure("Geçersiz klasör tipi");
+           }
+
+           string folderPath = Path.Combine(_environment.WebRootPath, safeFolderName);
+
+           var matchingFiles = Directory.EnumerateFiles(folderPath, request.FileName + ".*");
+
+           if (!matchingFiles.Any())
+           {
+               return Result<bool>.Failure("Dosya bulunamadı.");
+           }
+
+           foreach (var file in matchingFiles)
+           {
+               File.Delete(file);
+           }
+
+           return Result<bool>.Success(true);
+       }
+       private string ? GetSafeFolderName(string folderType)
+       {
+           if (!string.IsNullOrEmpty(folderType) &&
+               folderType.All(char.IsLetterOrDigit))
+           {
+               return folderType;
+           }
+           return null;
+       }
+   }*/
